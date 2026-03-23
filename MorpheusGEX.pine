@@ -1,0 +1,34 @@
+//@version=5
+indicator("Morpheus GEX Levels", overlay=true, max_lines_count=20, max_labels_count=20)
+
+sym  = input.string("spx", "Symbol", options=["spx","spy"])
+url  = "https://gist.githubusercontent.com/spartantraderx-droid/6fd31375de23fba22c35d302cea7ec64/raw/gex_levels.json"
+
+flip = str.tonumber(request.json(url, "." + sym + ".flip"))
+cwll = str.tonumber(request.json(url, "." + sym + ".call_wall"))
+pwll = str.tonumber(request.json(url, "." + sym + ".put_wall"))
+ngex = str.tonumber(request.json(url, "." + sym + ".net_gex"))
+regm = str.tostring(request.json(url, "." + sym + ".regime"))
+
+if barstate.islast
+    if not na(flip) and flip > 0
+        line.new(bar_index-500, flip, bar_index, flip, color=color.orange, width=2, style=line.style_dashed, extend=extend.right)
+        label.new(bar_index, flip, "Flip " + str.tostring(flip,"#.0"), color=color.new(color.orange,80), textcolor=color.orange, style=label.style_label_left, size=size.small)
+    if not na(cwll) and cwll > 0
+        line.new(bar_index-500, cwll, bar_index, cwll, color=color.green, width=2, extend=extend.right)
+        label.new(bar_index, cwll, "Call Wall " + str.tostring(cwll,"#.0"), color=color.new(color.green,80), textcolor=color.green, style=label.style_label_left, size=size.small)
+    if not na(pwll) and pwll > 0
+        line.new(bar_index-500, pwll, bar_index, pwll, color=color.red, width=2, extend=extend.right)
+        label.new(bar_index, pwll, "Put Wall " + str.tostring(pwll,"#.0"), color=color.new(color.red,80), textcolor=color.red, style=label.style_label_left, size=size.small)
+
+var table t = table.new(position.top_right, 2, 4, bgcolor=color.new(color.black,70), border_color=color.new(color.gray,60), border_width=1)
+if barstate.islast
+    gc = not na(ngex) and ngex >= 0 ? color.green : color.red
+    table.cell(t,0,0,"Morpheus GEX",text_color=color.orange,text_size=size.small,bgcolor=color.new(color.black,55))
+    table.cell(t,1,0,str.upper(sym),text_color=color.gray,text_size=size.small,bgcolor=color.new(color.black,55))
+    table.cell(t,0,1,"Net GEX",text_color=color.gray,text_size=size.tiny)
+    table.cell(t,1,1,not na(ngex) ? (ngex>=0?"+":"") + str.tostring(ngex,"#.##")+"B" : "...",text_color=gc,text_size=size.tiny)
+    table.cell(t,0,2,"Regime",text_color=color.gray,text_size=size.tiny)
+    table.cell(t,1,2,not na(regm) ? regm : "...",text_color=color.white,text_size=size.tiny)
+    table.cell(t,0,3,"Flip",text_color=color.gray,text_size=size.tiny)
+    table.cell(t,1,3,not na(flip) and flip>0 ? str.tostring(flip,"#.0") : "N/A",text_color=color.orange,text_size=size.tiny)
